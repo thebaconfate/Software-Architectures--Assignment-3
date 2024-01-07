@@ -273,7 +273,7 @@ object ShoppingSystem {
         iron -> 3,
         titanium -> 7,
         stone -> 5,
-        circuitBoard -> 100,
+        circuitBoard -> 10, //change to 10 for the purchase to succeed or to 100 for it to fail.
         processor -> 8,
         motor -> 6
       )
