@@ -161,6 +161,7 @@ object StockHousesAggregator {
 object OrderAggregator {
   private var order: Order = Order()
   private var responses = 0
+  private var maxResponses: Int = 0
 
   private def receiveResult(client: ClientActor): Behavior[Message] = Behaviors.receive((context, message) => {
     message match {
@@ -171,7 +172,7 @@ object OrderAggregator {
         context.log.info(s"$responses")
         checkResult(client)
       case OutStock(product) =>
-        context.log.info(s"Order aggregator received $product from stock house")
+        context.log.info(s"Order aggregator didn't received $product from stock house")
         responses += 1
         context.log.info(s"$responses")
         checkResult(client)
@@ -180,6 +181,7 @@ object OrderAggregator {
 
   def apply(client: ClientActor, goal: Order): Behavior[Message] = {
     order = goal
+    maxResponses = 5 * goal.collection.size
     receiveResult(client)
   }
 
@@ -189,7 +191,7 @@ object OrderAggregator {
       if (order.collection.isEmpty) {
         client ! OrderShipped()
         Behaviors.stopped
-      } else if (responses == 5 * order.collection.size) {
+      } else if (responses >= maxResponses) {
         client ! OrderDelayed("Not enough stock")
         Behaviors.stopped
       } else {
@@ -271,7 +273,7 @@ object ShoppingSystem {
         iron -> 3,
         titanium -> 7,
         stone -> 5,
-        circuitBoard -> 10,
+        circuitBoard -> 100,
         processor -> 8,
         motor -> 6
       )
